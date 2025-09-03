@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Which one?</title>
+  <style>
+    :root { --board-bg:#09121a; --chrome:#1f3b54; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0b1722; color:#e7eef6; min-height:100svh; display:grid; place-items:center; }
+    .wrapper { width: min(98vw, 1400px); padding: 1rem; }
+
+    .toolbar { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-top:0rem; margin-bottom:.75rem; }
+    .toolbar h1 { margin:0; font-size:clamp(1.1rem,2.2vw,1.35rem); letter-spacing:.02em; }
+    .btn { background:var(--chrome); border:1px solid #274864; color:#fff; padding:.5rem .75rem; border-radius:.6rem; cursor:pointer; }
+
+    .layout { display:grid; grid-template-columns: auto min(32vw, 220px); gap:1rem; align-items:start; }
+
+    .board { position:relative; background:var(--board-bg); border-radius:.8rem; box-shadow:0 0px 0px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04); overflow:hidden; }
+    #faces { display:block; width:100%; height:100%; image-rendering: pixelated; user-select:none; pointer-events:none; }
+    .legend {font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0b1722; color:#e7eef6; place-items:center; font-size: 11px }
+    .overlay-grid { position:absolute; display:grid; pointer-events:auto; /* ALL gaps removed */ column-gap:0; row-gap:0; }
+    .cell { position:relative; background:transparent; border:none; padding:0; margin:0; cursor:pointer; outline:none; background-size:100% 100%; background-repeat:no-repeat; background-position:center; }
+    .cell:focus-visible { outline:2px dashed rgba(255,255,255,.35); outline-offset:-2px; }
+    .cell.marked { background-image: url('cross.png'); }
+
+    .side { z-index:1000; background:#0f1f2d; border:1px solid #274864; border-radius:.8rem; padding:.75rem; box-shadow:0 0px 0px rgba(0,0,0,.25); position:fixed; top:10px; right:10px;  display: none;}
+    .side h2 { margin:0rem 0 0rem; font-size:1rem; font-weight:600; opacity:.9; }
+    #preview { width:200px; height: 200px; aspect-ratio:auto; display:block; background:#081019; border-radius:.4rem;  }
+
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="toolbar">
+			  <p><h1>Which one?</h1></p>
+			  	<div class="legend"><p>Click to remove a person or object. You get start over and get a new random person/object when you press <strong>Clear</strong>.</p></div>
+      <div class="controls">
+	  	<button class="btn" id="trigger-btn">SHOW YOURS</button> 
+        <button class="btn" id="clear" title="Clear all marks">CLEAR</button>
+  
+
+
+      </div>
+	    <aside id="side" class="side">
+        <h2>Your card</h2>
+        <canvas id="preview"></canvas>
+        </aside>
+
+      
+    </div>
+
+    <div class="layout">
+      <div class="board" id="board" role="application" aria-label="Guess Who board">
+        <img id="faces" src="faces.png" alt="Faces board" />
+        <div class="overlay-grid" id="grid" aria-hidden="false"></div>
+      </div>
+
+
+
+ </div>
+  </div>
+
+  <script>
+  
+	  // At the top of your script:
+	const faces = document.getElementById('faces');
+
+	// Default image if no parameter given
+	let imgName = "faces.png";
+
+	// Look for ?board=XYZ in the URL
+	const url = new URL(window.location.href);
+	const boardParam = url.searchParams.get("board");
+	if (boardParam) {
+	  imgName = boardParam + ".png";   // e.g. ?board=aliens → aliens.png
+	}
+
+	// Set the image source dynamically
+	faces.src = imgName;
+  
+    // --- FULLY MANUAL LAYOUT CONFIG ---
+    // Set these to match YOUR faces.png as it is displayed on the page.
+    // Nothing is auto-calculated; no percentages; no gaps.
+    const CONFIG = {
+      // The size (in CSS pixels) you want the image to be shown on the page
+      imgWidth: 1024,    // e.g. 900
+      imgHeight: 526,   // e.g. 600
+
+      // Grid definition (top-left origin of the first cell, in pixels from the image's top-left)
+      gridX: 17,        // e.g. left margin before first face
+      gridY: 17,        // e.g. top header height
+      cols: 8,
+      rows: 4,
+      cellW: 124,       // width of each face cell in pixels
+      cellH: 123         // height of each face cell in pixels
+
+    };
+
+    (function(){
+      const board = document.getElementById('board');
+      const grid = document.getElementById('grid');
+      const faces = document.getElementById('faces');
+      const preview = document.getElementById('preview');
+      const ctx = preview.getContext('2d');
+		let assignedIndex = 0;
+
+		const CSS_W = 124;   // must match CSS width
+		const CSS_H = 123;   // must match CSS height
+
+		function sizePreviewForDPR() {
+		  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+		  preview.width  = Math.round(CSS_W * dpr);   // backing bitmap size
+		  preview.height = Math.round(CSS_H * dpr);
+		  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+		}
+      // Apply manual board size (no responsive scaling)
+		const btn = document.getElementById("trigger-btn");
+		const box = document.getElementById("side");
+
+		btn.addEventListener("mouseenter", () => {
+		  box.style.display = "block";
+		});
+
+		btn.addEventListener("mouseleave", () => {
+		  box.style.display = "none";
+		});
+     
+	 function applyFixedSizes(){
+        board.style.width = CONFIG.imgWidth + 'px';
+        board.style.height = CONFIG.imgHeight + 'px';
+
+        // Position the overlay grid exactly, in pixels
+        Object.assign(grid.style, {
+          top: CONFIG.gridY + 'px',
+          left: CONFIG.gridX + 'px',
+          width: (CONFIG.cols * CONFIG.cellW) + 'px',
+          height: (CONFIG.rows * CONFIG.cellH) + 'px',
+          gridTemplateColumns: `repeat(${CONFIG.cols}, ${CONFIG.cellW}px)`,
+          gridTemplateRows: `repeat(${CONFIG.rows}, ${CONFIG.cellH}px)`,
+          columnGap: '0px',
+          rowGap: '0px'
+        });
+
+        // Build exact number of cells
+        grid.innerHTML = '';
+        const total = CONFIG.cols * CONFIG.rows;
+        for (let i = 0; i < total; i++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'cell';
+          btn.dataset.index = i;
+          grid.appendChild(btn);
+        }
+
+        // Size preview canvas for crisp drawing
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        const cssSize = preview.getBoundingClientRect();
+        preview.width = Math.round(cssSize.width * dpr);
+        preview.height = Math.round(cssSize.height * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      // Click handling (no drag to avoid accidental multi-mark)
+      grid.addEventListener('click', (e) => {
+        const cell = e.target.closest('.cell');
+        if (!cell) return;
+        cell.classList.toggle('marked');
+      });
+	  
+	  
+
+      // Helper: compute source rect on the ORIGINAL bitmap for a given index
+      function sourceRectForIndex(i){
+        const col = i % CONFIG.cols;
+        const row = Math.floor(i / CONFIG.cols);
+        // Position within the displayed image (CSS px)
+        const dx = CONFIG.gridX + col * CONFIG.cellW;
+        const dy = CONFIG.gridY + row * CONFIG.cellH;
+        const dw = CONFIG.cellW;
+        const dh = CONFIG.cellH;
+        // Map to the image's natural pixel space
+        const scaleX = faces.naturalWidth / CONFIG.imgWidth;
+        const scaleY = faces.naturalHeight / CONFIG.imgHeight;
+        return {
+          sx: Math.round(dx * scaleX),
+          sy: Math.round(dy * scaleY),
+          sw: Math.round(dw * scaleX),
+          sh: Math.round(dh * scaleY)
+        };
+      }
+
+		function drawFaceIndex(i){
+		  if (!faces.complete || !faces.naturalWidth) return;
+		  const { sx, sy, sw, sh } = sourceRectForIndex(i);
+		  ctx.clearRect(0, 0, preview.width, preview.height);
+		  ctx.imageSmoothingEnabled = false;
+		  ctx.drawImage(faces, sx, sy, sw, sh, 0, 0, preview.width, preview.height);
+		}
+
+
+		function pickRandom(){
+		  const total = CONFIG.cols * CONFIG.rows;
+		  assignedIndex = Math.floor(Math.random() * total);
+		  drawFaceIndex(assignedIndex);
+		}
+
+      document.getElementById('clear').addEventListener('click', () => {
+        [...grid.children].forEach(c => c.classList.remove('marked'));
+        pickRandom();
+      });
+
+      // Initialize when image is ready
+      function init(){
+	  applyFixedSizes();
+	  sizePreviewForDPR();
+	  pickRandom(); // sets assignedIndex and draws it
+	}
+	window.addEventListener('resize', sizePreviewForDPR);
+      if (faces.complete) init();
+      else faces.addEventListener('load', init, { once:true });
+
+      // Optional: expose CONFIG live editing in console
+      window.GUESSWHO_CONFIG = CONFIG; // you can edit values and call applyFixedSizes()
+      window.applyGuessWhoSizes = () => { applyFixedSizes(); };
+    })();
+  </script>
+</body>
+</html>
