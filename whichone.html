@@ -205,6 +205,54 @@
         [...grid.children].forEach(c => c.classList.remove('marked'));
         pickRandom();
       });
+	  
+			  // reuse your existing functions/vars:
+		// sizePreviewForDPR(), drawFaceIndex(i), assignedIndex, box (the preview panel)
+
+		function renderPreview() {
+		  sizePreviewForDPR();
+		  drawFaceIndex(assignedIndex);
+		}
+
+		function isPreviewVisible() {
+		  return box && getComputedStyle(box).display !== 'none';
+		}
+
+		// When showing the preview (hover):
+		btn.addEventListener("mouseenter", () => {
+		  box.style.display = "block";
+		  renderPreview();                 // <— draw after showing
+		});
+		btn.addEventListener("mouseleave", () => {
+		  box.style.display = "none";
+		});
+
+		// Redraw on resize/zoom:
+		window.addEventListener('resize', () => {
+		  if (isPreviewVisible()) renderPreview();
+		});
+
+		// Also redraw on devicePixelRatio changes (zoom events in many browsers)
+		let dprMQ;
+		function watchDPR() {
+		  if (dprMQ) dprMQ.removeEventListener('change', onDPRChange);
+		  dprMQ = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+		  dprMQ.addEventListener('change', onDPRChange);
+		}
+		function onDPRChange() {
+		  if (isPreviewVisible()) renderPreview();
+		  watchDPR(); // re-arm listener for the new DPR
+		}
+		watchDPR();
+
+		// (Optional) If you see black on scroll due to viewport bar collapsing on mobile:
+		window.addEventListener('scroll', () => {
+		  if (isPreviewVisible()) renderPreview();
+		}, { passive: true });
+
+
+
+
 
       // Initialize when image is ready
       function init(){
@@ -223,5 +271,3 @@
   </script>
 </body>
 </html>
-
-
