@@ -8,7 +8,7 @@
     :root { --board-bg:#09121a; --chrome:#1f3b54; }
     * { box-sizing: border-box; }
     body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0b1722; color:#e7eef6; min-height:90svh; display:grid; place-items:center; }
-    .wrapper { width: min(98vw, 1024px); padding: 1rem; }
+    .wrapper { width: min(1vw, 1300px);  }
 
     .toolbar { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-top:0rem; margin-bottom:.75rem; }
     .toolbar h1 { margin:0; font-size:clamp(1.1rem,2.2vw,1.35rem); letter-spacing:.02em; }
@@ -17,18 +17,18 @@
     .layout { display:grid; grid-template-columns: auto min(32vw, 220px); gap:1rem; align-items:start; }
 
     .board { position:relative; background:var(--board-bg); border-radius:.8rem; box-shadow:0 0px 0px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04); overflow:hidden; }
-    #faces { display:block; width:100%; height:100%; image-rendering: pixelated; user-select:none; pointer-events:none; }
+    #faces { display:block; width:100%; height:100%; user-select:none; pointer-events:none; }
     .legend {font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0b1722; color:#e7eef6; place-items:center; font-size: 11px }
     .overlay-grid { position:absolute; display:grid; pointer-events:auto; /* ALL gaps removed */ column-gap:0; row-gap:0; }
     .cell { position:relative; background:transparent; border:none; padding:0; margin:0; cursor:pointer; outline:none; background-size:100% 100%; background-repeat:no-repeat; background-position:center; }
     .cell:focus-visible { outline:2px dashed rgba(255,255,255,.35); outline-offset:-2px; }
-    .cell.marked { background-image: url('cross.png'); }
+    .cell.marked { background: black; opacity: 92%; }
 
-    .side { z-index:1000; background:#fb4e00; border:5px solid #000000; border-radius:.8rem; padding:.4rem; box-shadow:0 0px 0px rgba(0,0,0,.25); position:fixed; top:30%; left:45%;  display: none; place-items:center;}
-    .side h2 { margin:0.2rem ; font-size:1rem; color:#000000; font-weight:600; opacity:1;   }
-    #preview { width:200px; height: 200px; aspect-ratio:auto; display:block; background:#081019; border-radius:.4rem;  }
+    .side { z-index:1000;  background:#000000; border:10px dotted #FFFFFF;  padding: 0rem 1rem 1rem 1rem; box-shadow:0 0px 0px rgba(0,0,0,.25); position:fixed; top:30%; left:45%;  display: none; place-items:center;}
+    .side h2 { margin:1 1 1 1 ; font-size:1rem; color:#FFFFFF; font-weight:600; opacity:1;}
+    #preview { width:200px; height: 200px; aspect-ratio:auto; display:block; background:#081019;   }
 
-    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+   
   </style>
 </head>
 <body>
@@ -39,8 +39,6 @@
       <div class="controls">
 	  	<button class="btn" id="trigger-btn">SHOW YOURS</button> 
         <button class="btn" id="clear" title="Clear all marks">START OVER</button>
-  
-
 
       </div>
 	    <aside id="side" class="side">
@@ -48,7 +46,6 @@
         <canvas id="preview"></canvas>
         </aside>
 
-      
     </div>
 
     <div class="layout">
@@ -56,8 +53,6 @@
         <img id="faces" src="faces.png" alt="Faces board" />
         <div class="overlay-grid" id="grid" aria-hidden="false"></div>
       </div>
-
-
 
  </div>
   </div>
@@ -85,16 +80,16 @@
     // Nothing is auto-calculated; no percentages; no gaps.
     const CONFIG = {
       // The size (in CSS pixels) you want the image to be shown on the page
-      imgWidth: 1024,    // e.g. 900
-      imgHeight: 526,   // e.g. 600
+      imgWidth: 1300,    // e.g. 900
+      imgHeight: 667,   // e.g. 600
 
       // Grid definition (top-left origin of the first cell, in pixels from the image's top-left)
-      gridX: 17,        // e.g. left margin before first face
-      gridY: 17,        // e.g. top header height
+      gridX: 20,        // e.g. left margin before first face
+      gridY: 15,        // e.g. top header height
       cols: 8,
       rows: 4,
-      cellW: 124,       // width of each face cell in pixels
-      cellH: 123         // height of each face cell in pixels
+      cellW: 158,       // width of each face cell in pixels
+      cellH: 158         // height of each face cell in pixels
 
     };
 
@@ -106,11 +101,11 @@
       const ctx = preview.getContext('2d');
 		let assignedIndex = 0;
 
-		const CSS_W = 124;   // must match CSS width
-		const CSS_H = 123;   // must match CSS height
+		const CSS_W = 158;   // must match CSS width
+		const CSS_H = 158;   // must match CSS height
 
 		function sizePreviewForDPR() {
-		  const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+		  const dpr = Math.max(1, Math.min(1, window.devicePixelRatio || 1));
 		  preview.width  = Math.round(CSS_W * dpr);   // backing bitmap size
 		  preview.height = Math.round(CSS_H * dpr);
 		  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
