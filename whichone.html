@@ -24,27 +24,36 @@
     .cell:focus-visible { outline:2px dashed rgba(255,255,255,.35); outline-offset:-2px; }
     .cell.marked { background: black; opacity: 90%; }
 
-    .side { z-index:1000;  background:#000000; border:15px dotted white;  padding: 0rem 1rem 1rem 1rem; box-shadow:0 0px 0px rgba(0,0,0,.25); position:fixed; top:30%; left:45%;  display: none; place-items:center;}
-    .side h2 { margin:1 1 1 1 ; font-size:1rem; color:#FFFFFF; font-weight:600; opacity:1;}
-    #preview { width:200px; height: 200px; aspect-ratio:auto; display:block; background:#081019;   }
+     .side { z-index:1000; width:100%; height 100%;  background: rgba(0, 0, 0, 0.85);   padding: 0rem 1rem 1rem 1rem;  position:fixed; inset: 0;   display: none; place-items:center;
+    
+      
+      justify-content: center;/* horizontal center */
+      align-items: center;    /* vertical center */
+      pointer-events: none;   /* lets clicks pass through to underlying content */
+
+    }
+	.side h2 { margin:1 1 1 1 ; font-size:1rem; color:#FFFFFF; font-weight:600; opacity:1;}
+     #preview { width:200px; height: 200px; aspect-ratio:auto; display:block; background:#081019;   } 
 
    
   </style>
 </head>
 <body>
+
+	    <aside id="side" class="side">
+        <br><br><br><h2>Your card</h2>
+        <canvas id="preview"></canvas>
+        </aside>
+		
   <div class="wrapper">
     <div class="toolbar">
 			  <p><h1>Which one?</h1></p>
 			  	<div class="legend"><p>Click to remove a person or object. Hover <strong>"Show Yours"</strong> to see your card. Click <strong>"Start Over"</strong> to get a new card.</p></div>
-      <div class="controls">
+      <div>
 	  	<button class="btn" id="trigger-btn">SHOW YOURS</button> 
         <button class="btn" id="clear" title="Clear all marks">START OVER</button>
-
       </div>
-	    <aside id="side" class="side">
-        <h2>Your card</h2>
-        <canvas id="preview"></canvas>
-        </aside>
+
 
     </div>
 
