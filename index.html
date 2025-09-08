@@ -1,66 +1,166 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Which one?</title>
-  <style> 
-    :root { --board-bg:#09121a; --chrome:#1f3b54; }
+  <style>
+    :root{
+      --bg: #0b1722;
+      --text: #e7eef6;
+      --board-bg: #09121a;
+      --chrome: #1f3b54;
+      --accent: #00fff7;
+      --accent-2: hotpink;
+      --card-bg: #112233;
+      --muted: #9fb3c8;
+    }
+
     * { box-sizing: border-box; }
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0b1722; color:#e7eef6; min-height:90svh; display:grid; place-items:center; }
-	/* unvisited link */
-a:link {
-  color: #00fff7;
-}
 
-/* visited link */
-a:visited {
-  color: #00fff7;
-}
+    html, body {
+      height: 100%;
+    }
 
-/* mouse over link */
-a:hover {
-  color: hotpink;
-}
+    body{
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 1rem;
+    }
 
-/* selected link */
-a:active {
-  color: blue;
-}
-    .wrapper { width: min(40vw, 1024px); padding: 1rem; }
+    .wrapper{
+      width: min(92vw, 1024px);
+      display: grid;
+      gap: 1rem;
+      grid-template-areas:
+        "header"
+        "menu"
+        "content"
+        "footer";
+      grid-auto-rows: min-content;
+      background: var(--board-bg);
+      border: 1px solid #213446;
+      border-radius: 16px;
+      padding: clamp(0.75rem, 2.5vw, 1.25rem);
+      box-shadow: 0 10px 24px rgba(0,0,0,.35);
+    }
 
-    .toolbar { display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-top:0rem; margin-bottom:.75rem; }
-    .toolbar h1 { margin:0; font-size:clamp(1.1rem,2.2vw,1.35rem); letter-spacing:.02em; }
-    .btn { background:var(--chrome); border:1px solid #274864; color:#fff; padding:.5rem .75rem; border-radius:.6rem; cursor:pointer; }
+    header{
+      grid-area: header;
+      text-align: center;
+      padding: .25rem 0 .5rem;
+    }
 
-    .layout { display:grid; grid-template-columns: auto min(32vw, 220px); gap:1rem; align-items:start; }
+    h1{
+      margin: 0;
+      font-size: clamp(1.35rem, 3.4vw, 1.9rem);
+      letter-spacing: .02em;
+      font-weight: 700;
+    }
 
-    .board { position:relative; background:var(--board-bg); border-radius:.8rem; box-shadow:0 0px 0px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.04); overflow:hidden; }
-    #faces { display:block; width:100%; height:100%; image-rendering: pixelated; user-select:none; pointer-events:none; }
-    .legend {font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:#0b1722; color:#e7eef6; place-items:center; font-size: 16px }
+    nav.toolbar{
+      grid-area: menu;
+      background: linear-gradient(180deg, #17324a, #112538);
+      border: 1px solid #21415d;
+      border-radius: 12px;
+      padding: .75rem 1rem;
+      text-align: center;
+    }
 
+    .toolbar p{
+      margin: .25rem 0 0;
+      color: var(--muted);
+      font-style: italic;
+      font-size: .95rem;
+    }
 
+    main.legend{
+      grid-area: content;
+      background: var(--card-bg);
+      border: 1px solid #23384b;
+      border-radius: 12px;
+      padding: 1rem;
+    }
 
+    .list{
+      display: grid;
+      gap: .5rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
 
+    .list a{
+      display: block;
+      padding: .75rem 1rem;
+      border-radius: 10px;
+      background: #0f2233;
+      border: 1px solid #1c3246;
+      text-decoration: none;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    /* Link states, ordered LVHFA with a visible focus style */
+    .list a:link,
+    .list a:visited { color: var(--accent); }
+    .list a:hover { color: var(--accent-2); border-color: #2a5070; transform: translateY(-1px); }
+    .list a:active { opacity: .9; transform: translateY(0); }
+    .list a:focus-visible{
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .soon{
+      display: block;
+      padding: .75rem 1rem;
+      border-radius: 10px;
+      background: #0b1a28;
+      border: 1px dashed #1c3246;
+      color: #89a3bb;
+      text-align: center;
+    }
+
+    footer{
+      grid-area: footer;
+      color: #9cb2c7;
+      text-align: center;
+      font-size: .9rem;
+      padding-top: .25rem;
+    }
   </style>
 </head>
 <body>
   <div class="wrapper">
-    <div class="toolbar">
-			  <p><h1>Which one?</h1></p>
-			  	<div class="legend"><p>Click the same theme as your friend does!
+    <header>
+      <h1>Welcome to Tommie's “Guess Who”!</h1>
+    </header>
 
-					<div>
-					<p><a href="whichone.html?board=people">People</a></p>
-					<p><a href="whichone.html?board=food">Food</a></p>
-					<p>Animals (coming soon)</p>
-					<p>Countries (coming soon)</p>
-					<p>Vehicles (coming soon)</p>
-					
-					</div>
+    <nav class="toolbar" aria-label="Theme selection tips">
+      <h2 style="margin:0; font-size: clamp(1rem, 2.5vw, 1.2rem);">Pick a theme!</h2>
+      <p>(Choose the same theme as your friend)</p>
+    </nav>
 
-				</div>
+    <main class="legend" aria-labelledby="themes-heading">
+
+      <ul class="list">
+        <li><a href="whichone.html?board=people">People</a></li>
+        <li><a href="whichone.html?board=food">Food</a></li>
+        <li><span class="soon">Animals (coming soon)</span></li>
+        <li><span class="soon">Countries (coming soon)</span></li>
+        <li><span class="soon">Vehicles (coming soon)</span></li>
+      </ul>
+    </main>
+
+    <footer>
+      <span id="year"></span> Tell Tommie if you have suggestions for additional themes.
+    </footer>
+  </div>
+
 
 </body>
 </html>
